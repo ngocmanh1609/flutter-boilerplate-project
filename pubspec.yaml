@@ -41,6 +41,12 @@ dependencies:
   # An helper to easily exposes a value using InheritedWidget without having to write one.
   provider: ^4.3.1
 
+  # Bloc pattern: State management library
+  flutter_bloc: ^6.0.1
+
+  # compare instances of objects without extending hashcode
+  equatable: ^1.2.3
+
   # String validation and sanitization for Dart. Dart 2-compatible version of validator
   validators: ^2.0.1
 
