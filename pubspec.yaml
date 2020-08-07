@@ -33,13 +33,14 @@ dependencies:
   # Flogs, a powerful logging framework
   f_logs: ^1.2.2
 
-  # MobX is a library for reactively managing the state of your applications. Use the power of
-  # observables, actions, and reactions to supercharge your Dart and Flutter apps.
-  mobx: ^1.2.1+1
-  flutter_mobx: ^1.1.0+1
+  # bloc helper
+  bloc_provider: ^0.7.0
 
-  # An helper to easily exposes a value using InheritedWidget without having to write one.
-  provider: ^4.3.1
+  # equatable
+  equatable: ^1.2.3
+
+  # rxdart
+  rxdart: ^0.24.1
 
   # String validation and sanitization for Dart. Dart 2-compatible version of validator
   validators: ^2.0.1

@@ -1,8 +1,8 @@
+import 'package:bloc_provider/bloc_provider.dart';
 import 'package:boilerplate/constants/assets.dart';
 import 'package:boilerplate/data/sharedpref/constants/preferences.dart';
 import 'package:boilerplate/routes.dart';
-import 'package:boilerplate/stores/form/form_store.dart';
-import 'package:boilerplate/stores/theme/theme_store.dart';
+import 'package:boilerplate/ui/login/login_bloc.dart';
 import 'package:boilerplate/utils/device/device_utils.dart';
 import 'package:boilerplate/utils/locale/app_localization.dart';
 import 'package:boilerplate/widgets/app_icon_widget.dart';
@@ -12,8 +12,6 @@ import 'package:boilerplate/widgets/rounded_button_widget.dart';
 import 'package:boilerplate/widgets/textfield_widget.dart';
 import 'package:flushbar/flushbar_helper.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -26,17 +24,22 @@ class _LoginScreenState extends State<LoginScreen> {
   TextEditingController _userEmailController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
 
-  //stores:---------------------------------------------------------------------
-  ThemeStore _themeStore;
+  LoginBloc _loginBloc;
 
   //focus node:-----------------------------------------------------------------
   FocusNode _passwordFocusNode;
 
-  //stores:---------------------------------------------------------------------
-  final _store = FormStore();
-
   @override
   void initState() {
+    _loginBloc = BlocProvider.of<LoginBloc>(context);
+    _loginBloc.error.listen((error) {
+      _showErrorMessage(error);
+    });
+    _loginBloc.loginSuccess.listen((isSuccess) {
+      if (isSuccess) {
+        navigate(context);
+      }
+    });
     super.initState();
 
     _passwordFocusNode = FocusNode();
@@ -45,8 +48,6 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-
-    _themeStore = Provider.of<ThemeStore>(context);
   }
 
   @override
@@ -64,33 +65,28 @@ class _LoginScreenState extends State<LoginScreen> {
       child: Stack(
         children: <Widget>[
           MediaQuery.of(context).orientation == Orientation.landscape
-            ? Row(
-                children: <Widget>[
-                  Expanded(
-                    flex: 1,
-                    child: _buildLeftSide(),
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: _buildRightSide(),
-                  ),
-                ],
-          ) : Center(child: _buildRightSide()),
-          Observer(
-            builder: (context) {
-              return _store.success
-                  ? navigate(context)
-                  : _showErrorMessage(_store.errorStore.errorMessage);
-            },
-          ),
-          Observer(
-            builder: (context) {
-              return Visibility(
-                visible: _store.loading,
-                child: CustomProgressIndicatorWidget(),
-              );
-            },
-          )
+              ? Row(
+                  children: <Widget>[
+                    Expanded(
+                      flex: 1,
+                      child: _buildLeftSide(),
+                    ),
+                    Expanded(
+                      flex: 1,
+                      child: _buildRightSide(),
+                    ),
+                  ],
+                )
+              : Center(child: _buildRightSide()),
+          StreamBuilder(
+              stream: _loginBloc.isLoading,
+              initialData: false,
+              builder: (ctx, snapshot) {
+                return Visibility(
+                  visible: snapshot.data,
+                  child: CustomProgressIndicatorWidget(),
+                );
+              }),
         ],
       ),
     );
@@ -127,41 +123,44 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _buildUserIdField() {
-    return Observer(
-      builder: (context) {
+    return StreamBuilder(
+      stream: _loginBloc.emailValidatedError,
+      builder: (ctx, snapshot) {
         return TextFieldWidget(
           hint: AppLocalizations.of(context).translate('login_et_user_email'),
           inputType: TextInputType.emailAddress,
           icon: Icons.person,
-          iconColor: _themeStore.darkMode ? Colors.white70 : Colors.black54,
+          // iconColor: _themeStore.darkMode ? Colors.white70 : Colors.black54,
           textController: _userEmailController,
           inputAction: TextInputAction.next,
           onChanged: (value) {
-            _store.setUserId(_userEmailController.text);
+            _loginBloc.validateUserEmail(value);
           },
           onFieldSubmitted: (value) {
             FocusScope.of(context).requestFocus(_passwordFocusNode);
           },
-          errorText: _store.formErrorStore.userEmail,
+          errorText: snapshot.data,
         );
       },
     );
   }
 
   Widget _buildPasswordField() {
-    return Observer(
-      builder: (context) {
+    return StreamBuilder(
+      stream: _loginBloc.passwordValidatedError,
+      builder: (ctx, snapshot) {
         return TextFieldWidget(
-          hint: AppLocalizations.of(context).translate('login_et_user_password'),
+          hint:
+              AppLocalizations.of(context).translate('login_et_user_password'),
           isObscure: true,
           padding: EdgeInsets.only(top: 16.0),
           icon: Icons.lock,
-          iconColor: _themeStore.darkMode ? Colors.white70 : Colors.black54,
+          // iconColor: _themeStore.darkMode ? Colors.white70 : Colors.black54,
           textController: _passwordController,
           focusNode: _passwordFocusNode,
-          errorText: _store.formErrorStore.password,
+          errorText: snapshot.data,
           onChanged: (value) {
-            _store.setPassword(_passwordController.text);
+            _loginBloc.validatePassword(value);
           },
         );
       },
@@ -191,12 +190,9 @@ class _LoginScreenState extends State<LoginScreen> {
       buttonColor: Colors.orangeAccent,
       textColor: Colors.white,
       onPressed: () async {
-        if (_store.canLogin) {
-          DeviceUtils.hideKeyboard(context);
-          _store.login();
-        } else {
-          _showErrorMessage('Please fill in all fields');
-        }
+        DeviceUtils.hideKeyboard(context);
+        _loginBloc.login(_userEmailController.text, _passwordController.text);
+        // _showErrorMessage('Please fill in all fields');
       },
     );
   }
@@ -215,7 +211,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   // General Methods:-----------------------------------------------------------
-  _showErrorMessage( String message) {
+  _showErrorMessage(String message) {
     Future.delayed(Duration(milliseconds: 0), () {
       if (message != null && message.isNotEmpty) {
         FlushbarHelper.createError(
@@ -238,5 +234,4 @@ class _LoginScreenState extends State<LoginScreen> {
     _passwordFocusNode.dispose();
     super.dispose();
   }
-
 }
