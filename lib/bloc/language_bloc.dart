@@ -3,11 +3,25 @@ import 'package:boilerplate/data/repository.dart';
 import 'package:boilerplate/models/language/Language.dart';
 import 'package:rxdart/rxdart.dart';
 
-class LanguageBloc implements Bloc {
+abstract class LanguageBloc implements Bloc {
+  List<Language> supportedLanguages;
+  ValueStream<String> get locale;
+  ValueStream<String> get code;
+
+  void changeLanguage(String value);
+  String getLanguage();
+}
+
+class LanguageBlocImpl extends LanguageBloc {
   // repository instance
   final Repository _repository;
 
+  LanguageBlocImpl(this._repository) {
+    _init();
+  }
+
   // supported languages
+  @override
   List<Language> supportedLanguages = [
     Language(code: 'US', locale: 'en', language: 'English'),
     Language(code: 'DK', locale: 'da', language: 'Danish'),
@@ -16,7 +30,10 @@ class LanguageBloc implements Bloc {
 
   final _locale = BehaviorSubject<String>.seeded("en");
 
+  @override
   ValueStream<String> get locale => _locale;
+
+  @override
   ValueStream<String> get code => _locale.map((locale) {
         String code;
         if (locale == 'en') {
@@ -29,12 +46,8 @@ class LanguageBloc implements Bloc {
         return code;
       });
 
-  LanguageBloc(this._repository) {
-    init();
-  }
-
   // general:-------------------------------------------------------------------
-  void init() async {
+  void _init() async {
     // getting current language from shared preference
     _repository?.currentLanguage?.then((locale) {
       if (locale != null) {
@@ -43,6 +56,7 @@ class LanguageBloc implements Bloc {
     });
   }
 
+  @override
   void changeLanguage(String value) {
     _locale.add(value);
     _repository.changeLanguage(value).then((_) {
@@ -50,6 +64,7 @@ class LanguageBloc implements Bloc {
     });
   }
 
+  @override
   String getLanguage() {
     return supportedLanguages[supportedLanguages
             .indexWhere((language) => language.locale == _locale.value)]

@@ -10,6 +10,7 @@ import 'package:boilerplate/widgets/empty_app_bar_widget.dart';
 import 'package:boilerplate/widgets/progress_indicator_widget.dart';
 import 'package:boilerplate/widgets/rounded_button_widget.dart';
 import 'package:boilerplate/widgets/textfield_widget.dart';
+import 'package:flare_flutter/flare_actor.dart';
 import 'package:flushbar/flushbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -62,32 +63,52 @@ class _LoginScreenState extends State<LoginScreen> {
   // body methods:--------------------------------------------------------------
   Widget _buildBody() {
     return Material(
-      child: Stack(
-        children: <Widget>[
-          MediaQuery.of(context).orientation == Orientation.landscape
-              ? Row(
-                  children: <Widget>[
-                    Expanded(
-                      flex: 1,
-                      child: _buildLeftSide(),
-                    ),
-                    Expanded(
-                      flex: 1,
-                      child: _buildRightSide(),
-                    ),
-                  ],
-                )
-              : Center(child: _buildRightSide()),
-          StreamBuilder(
-              stream: _loginBloc.isLoading,
-              initialData: false,
-              builder: (ctx, snapshot) {
-                return Visibility(
-                  visible: snapshot.data,
-                  child: CustomProgressIndicatorWidget(),
-                );
-              }),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _buildStarFlare(),
+          Stack(
+            children: <Widget>[
+              MediaQuery.of(context).orientation == Orientation.landscape
+                  ? Row(
+                      children: <Widget>[
+                        Expanded(
+                          flex: 1,
+                          child: _buildLeftSide(),
+                        ),
+                        Expanded(
+                          flex: 1,
+                          child: _buildRightSide(),
+                        ),
+                      ],
+                    )
+                  : Center(child: _buildRightSide()),
+              StreamBuilder(
+                  stream: _loginBloc.isLoading,
+                  initialData: false,
+                  builder: (ctx, snapshot) {
+                    return Visibility(
+                      visible: snapshot.data,
+                      child: CustomProgressIndicatorWidget(),
+                    );
+                  }),
+            ],
+          ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildStarFlare() {
+    return Container(
+      height: 200,
+      width: 200,
+      padding: EdgeInsets.all(20),
+      child: FlareActor(
+        'assets/anim/practice-check.flr',
+        alignment: Alignment.center,
+        fit: BoxFit.contain,
+        animation: 'Checkmark Appear',
       ),
     );
   }

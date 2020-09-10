@@ -19,11 +19,11 @@ class Routes {
   static final routes = <String, WidgetBuilder>{
     splash: (BuildContext context) => SplashScreen(),
     login: (BuildContext context) => BlocProvider<LoginBloc>(
-          creator: (_, _bag) => LoginBloc(),
+          creator: (_, _bag) => LoginBlocImpl(),
           child: LoginScreen(),
         ),
     home: (BuildContext context) => BlocProvider<PostBloc>(
-          creator: (_, _bag) => PostBloc(appComponent.getRepository()),
+          creator: (_, _bag) => PostBlocImpl(appComponent.getRepository()),
           child: HomeScreen(),
         ),
   };

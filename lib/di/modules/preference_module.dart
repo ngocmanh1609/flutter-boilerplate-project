@@ -31,6 +31,6 @@ class PreferenceModule {
   @provide
   @singleton
   SharedPreferenceHelper provideSharedPreferenceHelper() {
-    return SharedPreferenceHelper(sharedPref);
+    return SharedPreferenceHelperImpl(sharedPref);
   }
 }

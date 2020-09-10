@@ -40,8 +40,8 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   // Create your store as a final variable in a base Widget. This works better
   // with Hot Reload than creating it directly in the `build` function.
-  final _themeBloc = ThemeBloc(appComponent.getRepository());
-  final _languageBloc = LanguageBloc(appComponent.getRepository());
+  final _themeBloc = ThemeBlocImpl(appComponent.getRepository());
+  final _languageBloc = LanguageBlocImpl(appComponent.getRepository());
 
   @override
   Widget build(BuildContext context) {

@@ -1,5 +1,5 @@
 name: boilerplate
-description: A flutter boilerplate project created using MobX and Provider.
+description: A flutter boilerplate project created using Rx and BLoC.
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
@@ -48,6 +48,8 @@ dependencies:
   # A powerful Http client for Dart
   dio: 3.0.9
 
+  flare_flutter: any
+
   # A flexible widget for user notification. Customize your text, button, duration, animations
   # and much more. For Android devs, it is made to replace Snackbars and Toasts.
   flushbar: ^1.10.4
@@ -70,13 +72,13 @@ dependency_overrides:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  mockito: ^4.1.1
 
   # The following adds the launcher icon support to your application.
   # run below mentioned commands to generate launcher icons
   # flutter packages get
   # flutter packages pub run flutter_launcher_icons:main
   flutter_launcher_icons: ^0.7.5
-  mobx_codegen: ^1.1.0+1
   json_serializable: ^3.3.0
   build_runner: ^1.10.0
   inject_generator:
@@ -107,6 +109,7 @@ flutter:
   - assets/images/
   - assets/icons/
   - assets/lang/
+  - assets/anim/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.io/assets-and-images/#resolution-aware.

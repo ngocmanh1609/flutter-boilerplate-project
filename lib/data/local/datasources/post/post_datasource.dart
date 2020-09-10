@@ -3,7 +3,23 @@ import 'package:boilerplate/models/post/post.dart';
 import 'package:boilerplate/models/post/post_list.dart';
 import 'package:sembast/sembast.dart';
 
-class PostDataSource {
+abstract class PostDataSource {
+  Future<int> insert(Post post);
+
+  Future<int> update(Post post);
+
+  Future<int> delete(Post post);
+
+  Future deleteAll();
+
+  Future<int> count();
+
+  Future<List<Post>> getAllSortedByFilter({List<Filter> filters});
+
+  Future<PostList> getPostsFromDb();
+}
+
+class PostDataSourceImpl extends PostDataSource {
   // A Store with int keys and Map<String, dynamic> values.
   // This Store acts like a persistent map, values of which are Flogs objects converted to Map
   final _postsStore = intMapStoreFactory.store(DBConstants.STORE_NAME);
@@ -16,17 +32,20 @@ class PostDataSource {
   final Future<Database> _db;
 
   // Constructor
-  PostDataSource(this._db);
+  PostDataSourceImpl(this._db);
 
   // DB functions:--------------------------------------------------------------
+  @override
   Future<int> insert(Post post) async {
     return await _postsStore.add(await _db, post.toMap());
   }
 
+  @override
   Future<int> count() async {
     return await _postsStore.count(await _db);
   }
 
+  @override
   Future<List<Post>> getAllSortedByFilter({List<Filter> filters}) async {
     //creating finder
     final finder = Finder(
@@ -47,8 +66,8 @@ class PostDataSource {
     }).toList();
   }
 
+  @override
   Future<PostList> getPostsFromDb() async {
-
     print('Loading from database');
 
     // post list
@@ -60,19 +79,20 @@ class PostDataSource {
     );
 
     // Making a List<Post> out of List<RecordSnapshot>
-    if(recordSnapshots.length > 0) {
+    if (recordSnapshots.length > 0) {
       postsList = PostList(
           posts: recordSnapshots.map((snapshot) {
-            final post = Post.fromMap(snapshot.value);
-            // An ID is a key of a record from the database.
-            post.id = snapshot.key;
-            return post;
-          }).toList());
+        final post = Post.fromMap(snapshot.value);
+        // An ID is a key of a record from the database.
+        post.id = snapshot.key;
+        return post;
+      }).toList());
     }
 
     return postsList;
   }
 
+  @override
   Future<int> update(Post post) async {
     // For filtering by key (ID), RegEx, greater than, and many other criteria,
     // we use a Finder.
@@ -84,6 +104,7 @@ class PostDataSource {
     );
   }
 
+  @override
   Future<int> delete(Post post) async {
     final finder = Finder(filter: Filter.byKey(post.id));
     return await _postsStore.delete(
@@ -92,10 +113,10 @@ class PostDataSource {
     );
   }
 
+  @override
   Future deleteAll() async {
     await _postsStore.drop(
       await _db,
     );
   }
-
 }

@@ -4,26 +4,37 @@ import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:rxdart/subjects.dart';
 
-class ThemeBloc implements Bloc {
+abstract class ThemeBloc implements Bloc {
+  ValueStream<bool> get darkMode;
+
+  Future changeBrightnessToDark(bool value);
+
+  bool isPlatformDark(BuildContext context);
+}
+
+class ThemeBlocImpl extends ThemeBloc {
   final Repository _repository;
 
-  ThemeBloc(this._repository) {
+  ThemeBlocImpl(this._repository) {
     _init();
   }
 
   final _darkMode = BehaviorSubject<bool>.seeded(false);
 
+  @override
   ValueStream<bool> get darkMode => _darkMode;
 
   _init() async {
     _darkMode.add(await _repository?.isDarkMode ?? false);
   }
 
+  @override
   Future changeBrightnessToDark(bool value) async {
     _darkMode.add(value);
     await _repository.changeBrightnessToDark(value);
   }
 
+  @override
   bool isPlatformDark(BuildContext context) =>
       MediaQuery.platformBrightnessOf(context) == Brightness.dark;
 

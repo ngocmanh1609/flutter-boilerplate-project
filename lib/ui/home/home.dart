@@ -59,10 +59,22 @@ class _HomeScreenState extends State<HomeScreen> {
 
   List<Widget> _buildActions(BuildContext context) {
     return <Widget>[
+      _buildCallNonAuthenticatedApiButton(),
       _buildLanguageButton(),
       _buildThemeButton(),
       _buildLogoutButton(),
     ];
+  }
+
+  Widget _buildCallNonAuthenticatedApiButton() {
+    return IconButton(
+      onPressed: () {
+        _postBloc.getNonAuthenticatedPosts();
+      },
+      icon: Icon(
+        Icons.phone,
+      ),
+    );
   }
 
   Widget _buildThemeButton() {

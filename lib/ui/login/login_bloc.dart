@@ -6,23 +6,48 @@ import 'package:rxdart/rxdart.dart';
 import 'package:rxdart/subjects.dart';
 import 'package:validators/validators.dart';
 
-class LoginBloc implements Bloc {
-  LoginBloc();
+abstract class LoginBloc implements Bloc {
+  ValueStream<String> get emailValidatedError;
+  ValueStream<String> get passwordValidatedError;
+  ValueStream<bool> get isLoading;
+  ValueStream<bool> get loginSuccess;
+  ValueStream<String> get error;
+
+  void validateUserEmail(String value);
+
+  void validatePassword(String value);
+
+  void login(String email, String password);
+}
+
+class LoginBlocImpl extends LoginBloc {
+  LoginBlocImpl();
+
   final _emailValidatedController = BehaviorSubject<String>();
   final _passwordValidatedController = BehaviorSubject<String>();
   final _isLoadingController = BehaviorSubject<bool>();
   final _loginSuccess = BehaviorSubject<bool>();
   final _error = BehaviorSubject<String>();
 
-  StreamSubscription loginSubscription;
+  StreamSubscription<bool> _loginSubscription;
 
+  @override
   ValueStream<String> get emailValidatedError => _emailValidatedController;
+
+  @override
   ValueStream<String> get passwordValidatedError =>
       _passwordValidatedController;
+
+  @override
   ValueStream<bool> get isLoading => _isLoadingController;
+
+  @override
   ValueStream<bool> get loginSuccess => _loginSuccess;
+
+  @override
   ValueStream<String> get error => _error;
 
+  @override
   void validateUserEmail(String value) {
     if (value.isEmpty) {
       _emailValidatedController.add("Email can't be empty");
@@ -33,6 +58,7 @@ class LoginBloc implements Bloc {
     }
   }
 
+  @override
   void validatePassword(String value) {
     if (value.isEmpty) {
       _passwordValidatedController.add("Password can't be empty");
@@ -44,6 +70,7 @@ class LoginBloc implements Bloc {
     }
   }
 
+  @override
   void login(String email, String password) async {
     _isLoadingController.add(true);
     if (!_emailValidatedController.hasValue ||
@@ -52,7 +79,7 @@ class LoginBloc implements Bloc {
       _error.add("Please fill in email and password!");
       return;
     }
-    loginSubscription = await _emailValidatedController
+    _loginSubscription = await _emailValidatedController
         .zipWith(_passwordValidatedController, (emailError, passwordError) {
       return emailError == null && passwordError == null;
     }).listen((validated) async {
@@ -65,7 +92,7 @@ class LoginBloc implements Bloc {
         _error.add("Please input email and password correctly!");
       }
     });
-    loginSubscription.cancel();
+    _loginSubscription.cancel();
   }
 
   @override
@@ -75,6 +102,6 @@ class LoginBloc implements Bloc {
     await _isLoadingController.close();
     await _loginSuccess.close();
     await _error.close();
-    await loginSubscription?.cancel();
+    await _loginSubscription?.cancel();
   }
 }
